@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IndexNIL — Data-Driven NIL Valuation & Advisory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12151A;
+    --surface:#1B1F27;
+    --surface-2:#20252F;
+    --line:#2A2F3A;
+    --text:#EDEFF2;
+    --muted:#8A93A3;
+    --amber:#FFB84D;
+    --amber-dim:#8a642c;
+    --teal:#4DD9C4;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+  .mono{font-family:'JetBrains Mono',monospace;}
+  h1,h2,h3,.display{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700;
+    letter-spacing:0.01em;
+    text-transform:uppercase;
+    line-height:1.05;
+  }
+  a{color:inherit;}
+  .wrap{max-width:1160px; margin:0 auto; padding:0 32px;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{content:""; width:18px; height:1px; background:var(--amber);}
+
+  /* ---------- Header ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(18,21,26,0.88);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:18px 0;}
+  .logo{font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:22px; letter-spacing:0.02em; text-transform:uppercase; display:flex; align-items:center; gap:8px;}
+  .logo span{color:var(--amber);}
+  .navlinks{display:flex; gap:32px; font-size:14px; color:var(--muted);}
+  .navlinks a{text-decoration:none; transition:color .2s;}
+  .navlinks a:hover{color:var(--text);}
+  .btn{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    padding:11px 20px;
+    border-radius:2px;
+    text-decoration:none;
+    display:inline-block;
+    border:1px solid transparent;
+    transition:all .18s ease;
+  }
+  .btn-primary{background:var(--amber); color:#1a1206; font-weight:700;}
+  .btn-primary:hover{background:#ffc770;}
+  .btn-ghost{border-color:var(--line); color:var(--text);}
+  .btn-ghost:hover{border-color:var(--amber); color:var(--amber);}
+
+  /* ---------- Hero ---------- */
+  .hero{padding:96px 0 80px; border-bottom:1px solid var(--line);}
+  .hero-grid{display:grid; grid-template-columns:1.15fr 1fr; gap:64px; align-items:center;}
+  .hero h1{font-size:56px; margin:18px 0 22px; color:var(--text);}
+  .hero h1 em{font-style:normal; color:var(--amber);}
+  .hero p.lead{font-size:17px; color:var(--muted); max-width:46ch; margin-bottom:32px;}
+  .hero-ctas{display:flex; gap:14px; flex-wrap:wrap;}
+
+  /* ---- signature: valuation readout card ---- */
+  .readout{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:26px 26px 22px;
+    position:relative;
+    overflow:hidden;
+  }
+  .readout::before{
+    content:"LIVE MODEL OUTPUT"; position:absolute; top:0; right:0;
+    font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.12em;
+    color:#5b6472; background:var(--surface-2); padding:5px 10px 5px 12px; border-bottom-left-radius:6px;
+  }
+  .readout-top{display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:22px;}
+  .readout-name{font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+  .readout-value{font-family:'JetBrains Mono',monospace; font-size:40px; font-weight:700; color:var(--amber); letter-spacing:-0.02em;}
+  .readout-value sup{font-size:16px; color:var(--muted); font-weight:400;}
+  .bar-row{margin-bottom:14px;}
+  .bar-row:last-child{margin-bottom:0;}
+  .bar-label{display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); margin-bottom:6px;}
+  .bar-label b{color:var(--text); font-weight:500;}
+  .bar-track{height:6px; background:var(--surface-2); border-radius:3px; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:3px; background:var(--teal); width:0%; transition:width 1.4s cubic-bezier(.2,.7,.2,1);}
+  .bar-fill.amber{background:var(--amber);}
+  .readout-foot{margin-top:20px; padding-top:16px; border-top:1px dashed var(--line); font-size:11px; color:#5b6472; font-family:'JetBrains Mono',monospace;}
+
+  /* ---------- Problem strip ---------- */
+  .strip{padding:56px 0; border-bottom:1px solid var(--line);}
+  .strip-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:40px;}
+  .stat{border-left:1px solid var(--line); padding-left:22px;}
+  .stat .num{font-family:'JetBrains Mono',monospace; font-size:32px; font-weight:700; color:var(--amber);}
+  .stat .cap{color:var(--muted); font-size:14px; margin-top:4px;}
+
+  /* ---------- Section generic ---------- */
+  section{padding:88px 0;}
+  .section-head{max-width:640px; margin-bottom:52px;}
+  .section-head h2{font-size:38px; margin-top:14px;}
+  .section-head p{color:var(--muted); margin-top:14px; font-size:16px;}
+
+  /* ---------- Services ---------- */
+  .services-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line); border:1px solid var(--line);}
+  .service{background:var(--bg); padding:32px 26px; min-height:220px; display:flex; flex-direction:column;}
+  .service .idx{font-family:'JetBrains Mono',monospace; color:var(--amber-dim); font-size:13px; margin-bottom:18px;}
+  .service h3{font-size:22px; margin-bottom:10px; text-transform:none; letter-spacing:0;}
+  .service p{color:var(--muted); font-size:14px; flex-grow:1;}
+
+  /* ---------- Methodology ---------- */
+  .method{background:var(--surface); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .method-grid{display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:center;}
+  .inputs{display:flex; flex-direction:column; gap:0;}
+  .input-row{display:flex; align-items:center; gap:16px; padding:16px 0; border-bottom:1px solid var(--line);}
+  .input-row:last-child{border-bottom:none;}
+  .input-tag{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--bg); background:var(--teal); padding:3px 8px; border-radius:2px; white-space:nowrap;}
+  .input-row.amber-tag .input-tag{background:var(--amber);}
+  .input-desc h4{font-size:16px; font-weight:600; margin-bottom:2px;}
+  .input-desc p{font-size:13px; color:var(--muted);}
+  .formula{
+    font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--muted);
+    background:var(--surface-2); border:1px solid var(--line); border-radius:6px; padding:26px;
+  }
+  .formula .out{color:var(--amber); font-weight:700;}
+  .formula .op{color:#5b6472; padding:0 6px;}
+  .formula-line{margin-bottom:10px;}
+  .formula-note{margin-top:18px; padding-top:16px; border-top:1px dashed var(--line); font-size:12.5px; color:#6b7484; font-family:'Inter',sans-serif;}
+
+  /* ---------- Process ---------- */
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:32px;}
+  .step{position:relative; padding-top:36px;}
+  .step .num{position:absolute; top:0; left:0; font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted);}
+  .step h3{font-size:20px; margin-bottom:8px; text-transform:none; letter-spacing:0;}
+  .step p{color:var(--muted); font-size:14px;}
+  .step-line{position:absolute; top:6px; left:34px; right:-32px; height:1px; background:var(--line);}
+  .step:last-child .step-line{display:none;}
+
+  /* ---------- Pricing ---------- */
+  .pricing-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:24px;}
+  .price-card{background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:30px 26px; display:flex; flex-direction:column;}
+  .price-card.highlight{border-color:var(--amber);}
+  .price-card h3{font-size:20px; text-transform:none; letter-spacing:0; margin-bottom:6px;}
+  .price-card .range{font-family:'JetBrains Mono',monospace; color:var(--amber); font-size:24px; margin-bottom:16px;}
+  .price-card ul{list-style:none; color:var(--muted); font-size:13.5px; flex-grow:1;}
+  .price-card li{padding:6px 0; border-bottom:1px solid var(--line);}
+  .price-card li:last-child{border-bottom:none;}
+
+  /* ---------- About ---------- */
+  .about{display:grid; grid-template-columns:1fr 1.4fr; gap:56px; align-items:center;}
+  .about-badge{
+    width:100%; aspect-ratio:1; background:var(--surface); border:1px solid var(--line); border-radius:6px;
+    display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; color:var(--amber-dim); font-size:13px; text-align:center; padding:20px;
+  }
+  .about h2{font-size:32px; margin-bottom:16px;}
+  .about p{color:var(--muted); margin-bottom:14px; font-size:15.5px; max-width:60ch;}
+
+  /* ---------- CTA / Contact ---------- */
+  .cta{background:var(--surface-2); border-top:1px solid var(--line);}
+  .cta-grid{display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:start;}
+  .cta h2{font-size:36px; margin-bottom:16px;}
+  .cta p{color:var(--muted); font-size:15px; max-width:46ch; margin-bottom:24px;}
+  form{display:flex; flex-direction:column; gap:14px;}
+  label{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em;}
+  input, select, textarea{
+    background:var(--surface); border:1px solid var(--line); color:var(--text);
+    padding:12px 14px; border-radius:4px; font-family:'Inter',sans-serif; font-size:14px; width:100%;
+  }
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--amber); outline-offset:1px; border-color:var(--amber);}
+  textarea{resize:vertical; min-height:90px;}
+  .field{display:flex; flex-direction:column; gap:6px;}
+  .form-msg{font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--teal); min-height:18px;}
+
+  footer{padding:36px 0; border-top:1px solid var(--line);}
+  .foot-row{display:flex; justify-content:space-between; align-items:center; color:#5b6472; font-size:13px; flex-wrap:wrap; gap:12px;}
+
+  @media (max-width:880px){
+    .hero-grid, .method-grid, .about, .cta-grid{grid-template-columns:1fr;}
+    .services-grid{grid-template-columns:repeat(2,1fr);}
+    .strip-grid{grid-template-columns:1fr; gap:24px;}
+    .steps{grid-template-columns:1fr;}
+    .step-line{display:none;}
+    .pricing-grid{grid-template-columns:1fr;}
+    .navlinks{display:none;}
+    .hero h1{font-size:38px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="logo">INDEX<span>NIL</span></div>
+    <nav class="navlinks">
+      <a href="#services">Services</a>
+      <a href="#method">Methodology</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#about">About</a>
+    </nav>
+    <a class="btn btn-primary" href="#contact">Get a Valuation</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">NIL VALUATION &amp; ADVISORY</div>
+      <h1>Know what your name is worth <em>before</em> someone else prices it for you.</h1>
+      <p class="lead">Most NIL offers get accepted on gut feeling. We build a quantitative valuation from your performance data, audience reach, and market comps — so you walk into every deal with a number, not a guess.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#contact">Get a Valuation</a>
+        <a class="btn btn-ghost" href="#method">See how it's calculated</a>
+      </div>
+    </div>
+    <div class="readout">
+      <div class="readout-top">
+        <div class="readout-name">SAMPLE ATHLETE &middot; NCAA D1 &middot; GUARD</div>
+      </div>
+      <div class="readout-value" id="readoutValue">$0<sup>/yr est.</sup></div>
+      <div style="height:20px;"></div>
+      <div class="bar-row">
+        <div class="bar-label"><span>Performance</span><b>82</b></div>
+        <div class="bar-track"><div class="bar-fill amber" data-target="82"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label"><span>Audience Reach</span><b>64</b></div>
+        <div class="bar-track"><div class="bar-fill" data-target="64"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label"><span>Market Demand</span><b>71</b></div>
+        <div class="bar-track"><div class="bar-fill" data-target="71"></div></div>
+      </div>
+      <div class="readout-foot">MODEL v1 &middot; ILLUSTRATIVE EXAMPLE, NOT AN ACTUAL CLIENT</div>
+    </div>
+  </div>
+</section>
+
+<section class="strip">
+  <div class="wrap strip-grid">
+    <div class="stat">
+      <div class="num">$1B+</div>
+      <div class="cap">Estimated annual NIL compensation across college sports</div>
+    </div>
+    <div class="stat">
+      <div class="num">Few</div>
+      <div class="cap">NIL advisors who build a real quantitative valuation, versus gut-feel or pure deal-sourcing</div>
+    </div>
+    <div class="stat">
+      <div class="num">1 rule</div>
+      <div class="cap">change (House v. NCAA) reshaping revenue-sharing — most athletes have no one explaining what it means for them</div>
+    </div>
+  </div>
+</section>
+
+<section id="services">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Services</div>
+      <h2>Four ways we help</h2>
+      <p>From a one-time valuation to ongoing support for an athletic department, each service is built on the same underlying model.</p>
+    </div>
+    <div class="services-grid">
+      <div class="service">
+        <div class="idx">01</div>
+        <h3>Valuation Reports</h3>
+        <p>A written, data-backed estimate of your fair-market NIL value, ready to bring into any deal conversation.</p>
+      </div>
+      <div class="service">
+        <div class="idx">02</div>
+        <h3>Deal Advisory</h3>
+        <p>We review a specific offer against your valuation and market comps, and flag terms that don't hold up.</p>
+      </div>
+      <div class="service">
+        <div class="idx">03</div>
+        <h3>Compliance Guidance</h3>
+        <p>Plain-language help navigating NCAA, state, and revenue-sharing rules — paired with your own attorney where needed.</p>
+      </div>
+      <div class="service">
+        <div class="idx">04</div>
+        <h3>Department Retainers</h3>
+        <p>Ongoing analytics support for athletic departments and collectives managing NIL budgets and booster reporting.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="method" id="method">
+  <div class="wrap method-grid">
+    <div>
+      <div class="eyebrow">Methodology</div>
+      <h2 style="font-size:34px; margin:14px 0 18px;">Four inputs. One defensible number.</h2>
+      <p style="color:var(--muted); font-size:15px; margin-bottom:28px;">The model doesn't guess — it weighs measurable inputs the same way a market would, then documents exactly how it got there.</p>
+      <div class="inputs">
+        <div class="input-row amber-tag">
+          <div class="input-tag">PERF</div>
+          <div class="input-desc"><h4>On-field / on-court performance</h4><p>Position-adjusted stats benchmarked against your level of competition.</p></div>
+        </div>
+        <div class="input-row">
+          <div class="input-tag">REACH</div>
+          <div class="input-desc"><h4>Social &amp; audience reach</h4><p>Followers, engagement rate, and content consistency across platforms.</p></div>
+        </div>
+        <div class="input-row amber-tag">
+          <div class="input-tag">COMP</div>
+          <div class="input-desc"><h4>Market comparables</h4><p>Disclosed and estimated deal values for athletes in a similar tier and sport.</p></div>
+        </div>
+        <div class="input-row">
+          <div class="input-tag">GEO</div>
+          <div class="input-desc"><h4>Regional brand demand</h4><p>Local sponsor density and how much your market pays for visibility.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="formula">
+      <div class="formula-line"><span class="out">VALUE</span> <span class="op">=</span> w1&middot;PERF <span class="op">+</span> w2&middot;REACH <span class="op">+</span> w3&middot;COMP <span class="op">+</span> w4&middot;GEO</div>
+      <div class="formula-line">w1&ndash;w4 <span class="op">=</span> weights calibrated per sport &amp; level</div>
+      <div class="formula-line">output <span class="op">=</span> annual value range <span class="op">+</span> confidence band</div>
+      <div class="formula-note">Every report shows its inputs and weights — nothing is a black box. You can challenge any number in it.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Process</div>
+      <h2>What working together looks like</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="num">01</div>
+        <h3>Send your info</h3>
+        <p>Stats, social handles, and any current offers — takes about ten minutes.</p>
+      </div>
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="num">02</div>
+        <h3>Get your valuation</h3>
+        <p>A written report with your number, the model behind it, and how you compare to peers.</p>
+      </div>
+      <div class="step">
+        <div class="num">03</div>
+        <h3>Negotiate with a number</h3>
+        <p>Bring it to any conversation, or have us review the offer directly with you.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Pricing</div>
+      <h2>Simple, by engagement</h2>
+      <p>Pilot pricing is in effect for early clients in exchange for a case study — ask when you reach out.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <h3>Valuation Report</h3>
+        <div class="range">$300&ndash;750</div>
+        <ul>
+          <li>One-time flat fee</li>
+          <li>Full written report</li>
+          <li>Delivered in 5&ndash;7 days</li>
+        </ul>
+      </div>
+      <div class="price-card highlight">
+        <h3>Deal Advisory</h3>
+        <div class="range">$150&ndash;400</div>
+        <ul>
+          <li>Per-deal review, or 3&ndash;5% of deal value</li>
+          <li>Term &amp; rights red-flag check</li>
+          <li>Direct negotiation support</li>
+        </ul>
+      </div>
+      <div class="price-card">
+        <h3>Department Retainer</h3>
+        <div class="range">$1.5k&ndash;5k<span style="font-size:14px;color:var(--muted);">/mo</span></div>
+        <ul>
+          <li>Ongoing analytics support</li>
+          <li>Collective budget tracking</li>
+          <li>Booster &amp; board reporting</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="wrap about">
+    <div class="about-badge">SPORTS BUSINESS<br>MANAGEMENT<br>+<br>DATA ANALYTICS</div>
+    <div>
+      <div class="eyebrow">About</div>
+      <h2>Built by someone who studies the market, not just the deals.</h2>
+      <p>This practice is run on a foundation of sports business management and data analytics — trained to read a market the way a front office does, not the way a talent agency does.</p>
+      <p>That means every valuation is built the same way a real market would price an asset: on measurable inputs, documented assumptions, and comparables — not a hunch about what an athlete "seems" worth.</p>
+    </div>
+  </div>
+</section>
+
+<section class="cta" id="contact">
+  <div class="wrap cta-grid">
+    <div>
+      <div class="eyebrow">Get started</div>
+      <h2>Tell us about the athlete or program.</h2>
+      <p>We'll follow up within 2 business days with next steps — or, if it's a quick question, just email directly.</p>
+      <p class="mono" style="font-size:13.5px; color:var(--text);">contact.indexNIL@gmail.com</p>
+    </div>
+    <form id="inquiryForm">
+      <div class="field">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" required>
+      </div>
+      <div class="field">
+        <label for="role">I am a...</label>
+        <select id="role" name="role">
+          <option>Athlete</option>
+          <option>Parent / Family Member</option>
+          <option>Athletic Department / Compliance Staff</option>
+          <option>Collective / Booster Org</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" required>
+      </div>
+      <div class="field">
+        <label for="message">What do you need?</label>
+        <textarea id="message" name="message" placeholder="e.g. I have an NIL offer and want it reviewed before I sign."></textarea>
+      </div>
+      <button class="btn btn-primary" type="submit" style="cursor:pointer;">Send Inquiry</button>
+      <div class="form-msg" id="formMsg" role="status"></div>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-row">
+    <div>&copy; 2026 IndexNIL. Advisory only — not a substitute for legal counsel.</div>
+    <div>contact.indexNIL@gmail.com</div>
+  </div>
+</footer>
+
+<script>
+  // Animate hero bars + counter on load
+  window.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.bar-fill').forEach(el => {
+      const target = el.getAttribute('data-target');
+      requestAnimationFrame(() => { el.style.width = target + '%'; });
+    });
+    const valueEl = document.getElementById('readoutValue');
+    const finalValue = 48200;
+    let current = 0;
+    const duration = 1400;
+    const start = performance.now();
+    function tick(now){
+      const p = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      current = Math.round(finalValue * eased);
+      valueEl.innerHTML = '$' + current.toLocaleString() + '<sup>/yr est.</sup>';
+      if(p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+
+  // Contact form — no backend wired up yet, so we just confirm receipt locally.
+  document.getElementById('inquiryForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    document.getElementById('formMsg').textContent = 'Thanks — this demo form isn\'t connected yet. Wire it to your email or a form service to go live.';
+    this.reset();
+  });
+</script>
+
+</body>
+</html>
